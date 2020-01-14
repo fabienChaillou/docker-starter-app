@@ -1,3 +1,3 @@
 <?php
 
-echo "This repo is starter for symfony app with docker-compose service";
+echo "This repo is starter for app with docker-compose service";

@@ -1,10 +1,10 @@
 # the different stages of this Dockerfile are meant to be built into separate images
 # https://docs.docker.com/compose/compose-file/#target
 
-ARG PHP_VERSION=7.3
+ARG PHP_VERSION=7.4
 
 ### PHP
-FROM php:${PHP_VERSION}-fpm-alpine AS symfony_docker_php
+FROM php:${PHP_VERSION}-fpm-alpine
 
 RUN apk add --no-cache \
 		git \
@@ -12,7 +12,8 @@ RUN apk add --no-cache \
 		zlib \
 		jq
 
-ENV APCU_VERSION 5.1.12
+ENV APCU_VERSION 5.1.18
+
 RUN set -eux \
 	&& apk add --no-cache --virtual .build-deps \
 		$PHPIZE_DEPS \
@@ -35,13 +36,10 @@ RUN set -eux \
 	&& apk del .build-deps
 
 RUN ln -s $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
-COPY conf.d/symfony.ini $PHP_INI_DIR/conf.d/symfony.ini
+COPY conf.d/app.ini $PHP_INI_DIR/conf.d/app.ini
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 WORKDIR /srv/app
 
-# Use prestissimo to speed up builds
-RUN composer global require "symfony/flex" --prefer-dist --no-progress --no-suggest --classmap-authoritative  --no-interaction
-
-RUN mkdir -p var/{cache,logs,sessions} \
+RUN mkdir -p 755 var/{cache,logs,sessions} \
     && chown -R www-data var
